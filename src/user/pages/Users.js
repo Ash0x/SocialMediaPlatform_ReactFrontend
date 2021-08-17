@@ -8,14 +8,14 @@ const Users = () => {
       id: 'u1',
       name: 'Alex Galev',
       image:
-        'https://nebulartribe.com/wp-content/uploads/2021/01/Macro2-scaled.jpg',
+      'https://images.pexels.com/photos/1323550/pexels-photo-1323550.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260',
       places: '2',
     },
     {
       id: 'u2',
       name: 'Evelynn',
       image:
-        'https://nebulartribe.com/wp-content/uploads/2021/01/Flowaz-scaled.jpg',
+        'https://images.pexels.com/photos/4703534/pexels-photo-4703534.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260',
       places: '1',
     },
   ]
