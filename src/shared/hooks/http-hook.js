@@ -16,17 +16,23 @@ export const useHttpClient = () => {
           method,
           body,
           headers,
-          signal: httpAbortCtrl.signal
+          signal: httpAbortCtrl.signal,
         })
         const responseData = await response.json()
+
+        activeHttpRequests.current = activeHttpRequests.current.filter(
+          (reqCtrl) => reqCtrl !== httpAbortCtrl
+        )
         if (!response.ok) {
           throw new Error(responseData)
         }
+        setIsLoading(false)
         return responseData
       } catch (err) {
         setError(err.message)
+        setIsLoading(false)
+        throw err
       }
-      setIsLoading(false)
     },
     []
   )
@@ -34,10 +40,10 @@ export const useHttpClient = () => {
     setError(null)
   }
 
-//useEffect for cleanup. return function is executed as a 'cleanup' function before useEffect runs again || or when component UNMOUNTS
+  //useEffect for cleanup. return function is executed as a 'cleanup' function before useEffect runs again || when component UNMOUNTS
   useEffect(() => {
     return () => {
-      activeHttpRequests.current.forEach(abortCtrl => abortCtrl.abort())
+      activeHttpRequests.current.forEach((abortCtrl) => abortCtrl.abort())
     }
   }, [])
   return { isLoading, error, sendRequest, clearError }
