@@ -1,4 +1,5 @@
 import React, { useContext } from 'react'
+import { useHistory } from 'react-router-dom'
 
 import './PlaceForm.css'
 import { AuthContext } from '../../shared/context/auth-context'
@@ -33,6 +34,9 @@ const NewPlace = () => {
     },
     false
   )
+  
+  const history = useHistory()
+
   const placeSubmitHandler = async (event) => {
     event.preventDefault()
     try {
@@ -43,10 +47,11 @@ const NewPlace = () => {
           title: formState.inputs.title.value,
           description: formState.inputs.description.value,
           address: formState.inputs.address.value,
-          creator: auth.userId
+          creator: auth.userId,
         }),
         { 'Content-Type': 'application/json' }
       )
+      history.push('/')
     } catch (err) {}
   }
 
