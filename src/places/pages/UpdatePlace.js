@@ -1,62 +1,25 @@
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import React, { useEffect, useState, useContext } from 'react'
+import { useParams, useHistory } from 'react-router-dom'
 import { useForm } from '../../shared/hooks/form-hook'
 import Input from '../../shared/components/FormElements/Input'
 import Button from '../../shared/components/FormElements/Button'
 import Card from '../../shared/components/UIElements/Card'
+import ErrorModal from '../../shared/components/UIElements/ErrorModal'
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner'
 import {
   VALIDATOR_REQUIRE,
   VALIDATOR_MINLENGTH,
 } from '../../shared/util/validators'
+import { useHttpClient } from '../../shared/hooks/http-hook'
+import { AuthContext } from '../../shared/context/auth-context'
 import './PlaceForm.css'
 
-const DUMMY_DATA = [
-  {
-    id: 'p1',
-    title: 'Eiffel Tower',
-    description: 'One of the most emblematic structures in Europe.',
-    imageUrl:
-      'https://cdn.theculturetrip.com/wp-content/uploads/2018/05/eiffel-tower-3349075_1280-1.jpg',
-    address: 'Champ de Mars, 5 Avenue Anatole France, 75007 Paris, France',
-    location: {
-      lat: 48.8525155,
-      lng: 2.3034894,
-    },
-    creator: 'u1',
-  },
-  {
-    id: 'p2',
-    title: 'Arc de Triomphe',
-    description:
-      'Iconic triumphal arch built to commemorate Napoleons victories, with an observation deck.',
-    imageUrl:
-      'https://cdn.britannica.com/66/80466-050-2E125F5C/Arc-de-Triomphe-Paris-France.jpg',
-    address: 'Place Charles de Gaulle, 75008 Paris, France',
-    location: {
-      lat: 48.8737952,
-      lng: 2.2928388,
-    },
-    creator: 'u1',
-  },
-  {
-    id: 'p3',
-    title: 'Louvre Museum',
-    description:
-      'Former historic palace housing huge art collection, from Roman sculptures to da Vincis Mona Lisa.',
-    imageUrl:
-      'https://s.france24.com/media/display/ffb00d5c-5bcb-11ea-9b68-005056a98db9/w:1280/p:16x9/5ebdce7c4db36aa769d6edb94f5b288f18ac266c.webp',
-    address: 'Rue de Rivoli, 75001 Paris, France',
-    location: {
-      lat: 48.8606146,
-      lng: 2.3354553,
-    },
-    creator: 'u2',
-  },
-]
-
 const UpdatePlace = () => {
-  const [isLoading, setIsLoading] = useState(true)
-  const placeId = useParams().placeId
+  const auth = useContext(AuthContext)
+  const { isLoading, error, sendRequest, clearError } = useHttpClient()
+  const [loadedPlace, setLoadedPlace] = useState()
+  const placeID = useParams().placeID
+  const history = useHistory()
 
   const [formState, inputHandler, setFormData] = useForm(
     {
@@ -72,34 +35,56 @@ const UpdatePlace = () => {
     false
   )
 
-  const identifiedPlace = DUMMY_DATA.find((p) => p.id === placeId)
-
   useEffect(() => {
-    if (identifiedPlace) {
-      setFormData(
-        {
-          title: {
-            value: identifiedPlace.title,
-            isValid: true,
+    const fetchPlace = async () => {
+      try {
+        const responseData = await sendRequest(
+          `http://localhost:5000/api/places/${placeID}`
+        )
+        setLoadedPlace(responseData.place)
+        setFormData(
+          {
+            title: {
+              value: responseData.place.title,
+              isValid: true,
+            },
+            description: {
+              value: responseData.place.description,
+              isValid: true,
+            },
           },
-          description: {
-            value: identifiedPlace.description,
-            isValid: true,
-          },
-        },
-        true
-      )
+          true
+        )
+      } catch (err) {}
     }
+    fetchPlace()
+  }, [sendRequest, placeID, setFormData])
 
-    setIsLoading(false)
-  }, [setFormData, identifiedPlace])
-
-  const placeUpdateSubmitHandler = (event) => {
+  const placeUpdateSubmitHandler = async (event) => {
     event.preventDefault()
-    console.log(formState.inputs)
+    try {
+      await sendRequest(
+        `http://localhost:5000/api/places/${placeID}`,
+        'PATCH',
+        JSON.stringify({
+          title: formState.inputs.title.value,
+          description: formState.inputs.description.value,
+        }),
+        { 'Content-Type': 'application/json' }
+      )
+      history.push('/' + auth.userId + '/places')
+    } catch (err) {}
   }
 
-  if (!identifiedPlace) {
+  if (isLoading) {
+    return (
+      <div className='center'>
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  if (!loadedPlace && !error) {
     return (
       <div className='center'>
         <Card>
@@ -109,41 +94,38 @@ const UpdatePlace = () => {
     )
   }
 
-  if (isLoading) {
-    return (
-      <div className='center'>
-        <h2>Loading . . .</h2>
-      </div>
-    )
-  }
-
   return (
-    <form className='place-form' onSubmit={placeUpdateSubmitHandler}>
-      <Input
-        id='title'
-        element='input'
-        type='text'
-        label='Title'
-        validators={[VALIDATOR_REQUIRE()]}
-        errorText='Please enter a valid title.'
-        onInput={inputHandler}
-        initialValue={formState.inputs.title.value}
-        initialValid={formState.inputs.title.isValid}
-      />
-      <Input
-        id='description'
-        element='textarea'
-        label='Description'
-        validators={[VALIDATOR_MINLENGTH(5)]}
-        errorText='Please enter a valid description(min. 5 characters).'
-        onInput={inputHandler}
-        initialValue={formState.inputs.description.value}
-        initialValid={formState.inputs.description.isValid}
-      />
-      <Button type='submit' disabled={!formState.isValid}>
-        UPDATE PLACE
-      </Button>
-    </form>
+    <React.Fragment>
+      <ErrorModal error={error} onClear={clearError} />
+      {!isLoading && loadedPlace && (
+        <form className='place-form' onSubmit={placeUpdateSubmitHandler}>
+          <Input
+            id='title'
+            element='input'
+            type='text'
+            label='Title'
+            validators={[VALIDATOR_REQUIRE()]}
+            errorText='Please enter a valid title.'
+            onInput={inputHandler}
+            initialValue={loadedPlace.title}
+            initialValid={true}
+          />
+          <Input
+            id='description'
+            element='textarea'
+            label='Description'
+            validators={[VALIDATOR_MINLENGTH(5)]}
+            errorText='Please enter a valid description(min. 5 characters).'
+            onInput={inputHandler}
+            initialValue={loadedPlace.description}
+            initialValid={true}
+          />
+          <Button type='submit' disabled={!formState.isValid}>
+            UPDATE PLACE
+          </Button>
+        </form>
+      )}
+    </React.Fragment>
   )
 }
 

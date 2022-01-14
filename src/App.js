@@ -42,7 +42,7 @@ export default function App() {
         <Route path='/places/new' exact>
           <NewPlace />
         </Route>
-        <Route path='/places/:placeId'>
+        <Route path='/places/:placeID'>
           <UpdatePlace />
         </Route>
         <Redirect to='/' />

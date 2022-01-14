@@ -124,16 +124,16 @@ const Auth = () => {
             id='password'
             type='password'
             label='Password'
-            validators={[VALIDATOR_MINLENGTH(5)]}
-            errorText='Please enter a valid password, at least 5 characters.'
+            validators={[VALIDATOR_MINLENGTH(6)]}
+            errorText='Please enter a valid password, at least 6 characters.'
             onInput={inputHandler}
           />
           <Button type='submit' disabled={!formState.isValid}>
-            {isLoginMode ? 'Login' : 'SignUp'}
+            {isLoginMode ? 'Login' : 'Sign Up'}
           </Button>
         </form>
         <Button inverse onClick={switchModeHandler}>
-          Switch to {isLoginMode ? 'Signup?' : 'Login'}
+          Switch to {isLoginMode ? 'Sign up?' : 'Login'}
         </Button>
       </Card>
     </React.Fragment>
