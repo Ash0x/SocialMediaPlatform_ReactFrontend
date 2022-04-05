@@ -50,8 +50,8 @@ const Auth = () => {
           },
           image: {
             value: null,
-            isValid: false
-          }
+            isValid: false,
+          },
         },
         false
       )
@@ -62,7 +62,6 @@ const Auth = () => {
 
   const authSubmitHandler = async (event) => {
     event.preventDefault()
-
 
     if (isLoginMode) {
       try {
@@ -115,7 +114,14 @@ const Auth = () => {
               onInput={inputHandler}
             />
           )}
-          {!isLoginMode && <ImageUpload center id='image' onInput={inputHandler} />}
+          {!isLoginMode && (
+            <ImageUpload
+              center
+              id='image'
+              onInput={inputHandler}
+              errorText='Please provide an image.'
+            />
+          )}
           <Input
             element='input'
             id='email'
