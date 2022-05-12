@@ -79,7 +79,10 @@ const UpdatePlace = () => {
 		} catch (err) {}
 	}
 
+<<<<<<< HEAD
 	
+=======
+>>>>>>> 17f1f679a05b384582b2989aed5845f9a754f1f2
 	if (isLoading) {
 		return (
 			<div className='center'>
