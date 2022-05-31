@@ -10,11 +10,12 @@ const UserPlaces = (props) => {
   const [loadedPlaces, setLoadedPlaces] = useState()
   const { isLoading, error, sendRequest, clearError } = useHttpClient()
   const userID = useParams().userID
+
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
         const responseData = await sendRequest(
-          `http://localhost:5000/api/places/user/${userID}`
+          `${process.env.REACT_APP_BACKEND_URL}/places/user/${userID}`
         )
         setLoadedPlaces(responseData.places)
       } catch (err) {}
